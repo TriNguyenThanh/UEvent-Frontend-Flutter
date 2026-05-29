@@ -1,0 +1,123 @@
+// File: lib/widgets/glass_top_bar.dart
+
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:frontend/core/theme/app_colors.dart';
+import 'package:frontend/core/theme/app_constants.dart';
+import 'package:frontend/core/theme/app_text_styles.dart';
+
+/// Floating glassmorphic top navigation bar (iOS 26 style).
+/// Used across all screens with flexible leading/trailing widgets.
+class GlassTopBar extends StatelessWidget {
+  final String title;
+  final Widget? leadingWidget;
+  final IconData? leadingIcon;
+  final IconData? trailingIcon;
+  final Widget? trailingWidget;
+  final VoidCallback? onLeadingTap;
+  final VoidCallback? onTrailingTap;
+  final TextStyle? titleStyle;
+
+  const GlassTopBar({
+    super.key,
+    required this.title,
+    this.leadingWidget,
+    this.leadingIcon,
+    this.trailingIcon,
+    this.trailingWidget,
+    this.onLeadingTap,
+    this.onTrailingTap,
+    this.titleStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+
+    final content = Container(
+      height: AppConstants.topBarHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 0.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowNav,
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Leading
+          if (leadingWidget != null)
+            leadingWidget!
+          else if (leadingIcon != null)
+            _buildIconButton(leadingIcon!, onLeadingTap)
+          else
+            const SizedBox(width: 40),
+
+          // Title
+          Expanded(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: titleStyle ?? AppTextStyles.titleMedium,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
+          // Trailing
+          if (trailingWidget != null)
+            trailingWidget!
+          else if (trailingIcon != null)
+            _buildIconButton(trailingIcon!, onTrailingTap)
+          else
+            const SizedBox(width: 40),
+        ],
+      ),
+    );
+
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppConstants.radiusFull),
+          child: isAndroid
+              ? content
+              : BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: AppConstants.glassNavBlur,
+                    sigmaY: AppConstants.glassNavBlur,
+                  ),
+                  child: content,
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton(IconData icon, VoidCallback? onTap) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.5),
+      shape: const CircleBorder(),
+      child: InkResponse(
+        onTap: onTap,
+        containedInkWell: true,
+        customBorder: const CircleBorder(),
+        radius: 20,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, size: 20, color: AppColors.onSurface),
+        ),
+      ),
+    );
+  }
+}
